@@ -46,7 +46,7 @@ for line in os.popen('%s -f -C -e %s %s' % (addr2line, exefile, ' '.join(addrs))
     name = name.replace(matchobj.group(0), '')
 
   #去掉函数参数
-  if name[-1] == ')':
+  if name[-1] == ')' or (len(name) > 7 and name[-7:] == ') const'):
     try:
       name = name[:name.index('(')]
     except:pass
