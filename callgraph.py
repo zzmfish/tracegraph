@@ -61,6 +61,7 @@ nodes = set(addr2name.values())
 
 f = open('callgraph.dot', 'w')
 f.write('digraph G {\n');
+f.write('node [ shape="box" fontsize="10" ];\n');
 nodeIds = {}
 i=0
 for node in nodes:
@@ -79,4 +80,4 @@ for edge in edges:
 f.write('}\n');
 f.close()
 
-os.system('dot -Tpng -Nshape=box -Nfontsize=10 callgraph.dot -o ' + outputfile)
+os.system('dot -Tpng callgraph.dot -o ' + outputfile)
