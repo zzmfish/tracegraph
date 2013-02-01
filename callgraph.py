@@ -11,6 +11,7 @@ outputfile = sys.argv[4]
 
 addr2name = {}
 edges = set()
+leafs = set()
 
 def get_node_index(name):
   if nodes.count(name) == 0:
@@ -22,10 +23,12 @@ addrs = []
 while True:
   line = f.readline().strip('\r\n')
   if not line: break
-  caller, callee = line.split()
+  caller, callee, leaf = line.split()
   addrs.append(caller)
   addrs.append(callee)
   edges.add((caller, callee))
+  if leaf == '1':
+    leafs.add(callee)
 f.close()
 
 namespace_pattern = re.compile('^[\w_]+::[\w_]+::')
@@ -61,10 +64,25 @@ nodes = set(addr2name.values())
 
 f = open('callgraph.dot', 'w')
 f.write('digraph G {\n');
-f.write('node [ shape="box" fontsize="10" ];\n');
 nodeIds = {}
 i=0
+leafNodes = set()
+
+#write leaf nodes
+f.write('node [ shape="box" fontsize="10" style="filled" fillcolor="#88dd88" ];\n');
+for leafAddr in leafs:
+  node = addr2name[leafAddr]
+  leafNodes.add(node)
+  nodeId = 'node' + str(i)
+  f.write('%s [ label="%s" ];\n' % (nodeId, node))
+  nodeIds[node] = nodeId
+  i += 1
+  
+#write normal nodes
+f.write('node [ style="solid" ];\n');
 for node in nodes:
+  if node in leafNodes:
+    continue
   nodeId = 'node' + str(i)
   f.write('%s [ label="%s" ];\n' % (nodeId, node))
   nodeIds[node] = nodeId

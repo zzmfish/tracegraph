@@ -13,8 +13,16 @@ int max_frame_depth = 0, max_frame_size = 0;
 
 struct call_table_item {
   unsigned callee;
+  int leaf;
   struct call_table_item *next;
 };
+
+#ifdef ANDROID
+#include <android/log.h>
+#define BACKTRACE_LOG(...) __android_log_print(ANDROID_LOG_DEBUG, "backtrace", __VA_ARGS__);
+#else
+#define BACKTRACE_LOG
+#endif
 
 struct call_table_item **call_table = NULL;
 
@@ -23,17 +31,20 @@ void call_table_init(unsigned size)
   call_table = (struct call_table_item**) calloc(size, sizeof(struct call_table_item*));
 }
 
-void call_table_set(unsigned caller, unsigned callee)
+void call_table_set(unsigned caller, unsigned callee, int leaf)
 {
   struct call_table_item *item = call_table[caller];
   while (item) {
-    if (item->callee == callee)
+    if (item->callee == callee) {
+      item->leaf |= leaf;
       return;
+    }
     item = item->next;
   }
   struct call_table_item *new_item = malloc(sizeof(struct call_table_item));
   new_item->next = call_table[caller];
   new_item->callee = callee;
+  new_item->leaf = leaf;
   call_table[caller] = new_item;
 }
 
@@ -67,7 +78,7 @@ void backtrace()
     #endif
     if (prev_ip >= addr_start && prev_ip < addr_end
         && ip >= addr_start && ip < addr_end) {
-      call_table_set((unsigned long)prev_ip - addr_start, (unsigned long)ip - addr_start);
+      call_table_set((unsigned long)prev_ip - addr_start, (unsigned long)ip - addr_start, i == 1);
     }
     if (abs(bp - prev_bp) > max_frame_size) //函数栈帧太大就认为出错
       break;
@@ -81,6 +92,7 @@ void backtrace()
 
 void backtrace_dump(const char *filepath)
 {
+  BACKTRACE_LOG("backtrace_dump(%s) BEGIN\n", filepath);
   if (!call_table) return;
 
   FILE *file = fopen(filepath, "w");
@@ -88,15 +100,17 @@ void backtrace_dump(const char *filepath)
   for (; caller < addr_end - addr_start; caller ++) {
     struct call_table_item *item = call_table[caller];
     while (item) {
-      fprintf(file, "%x %x\n", caller, item->callee);
+      fprintf(file, "%x %x %d\n", caller, item->callee, item->leaf);
       item = item->next;
     }
   }
   fclose(file);
+  BACKTRACE_LOG("backtrace_dump END\n");
 }
 
 void backtrace_init(const char *name, int _max_frame_depth, int _max_frame_size)
 {
+  BACKTRACE_LOG("backtrace_init(%s, %d, %d)\n", name, _max_frame_depth, _max_frame_size);
   static char inited = 0;
   if (inited) return;
   inited = 1;
