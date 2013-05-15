@@ -55,7 +55,7 @@ for line in os.popen('%s -f -C -e %s %s' % (addr2line, exefile, ' '.join(addrs))
     except:pass
 
   #去掉名字空间
-  if namespace_pattern.match(name):
+  while namespace_pattern.match(name):
     name = name[name.index('::') + 2 :]
 
   addr2name[addrs[i]] = name
@@ -98,4 +98,7 @@ for edge in edges:
 f.write('}\n');
 f.close()
 
-os.system('dot -Tpng callgraph.dot -o ' + outputfile)
+cmd = 'dot -Tpng callgraph.dot -o ' + outputfile
+print "\033[1m" + cmd + "\033[0m";
+os.system(cmd)
+
