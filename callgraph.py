@@ -30,6 +30,9 @@ while True:
   if leaf == '1':
     leafs.add(callee)
 f.close()
+if not addrs:
+    print "Error: file is empty!"
+    sys.exit(0)
 
 namespace_pattern = re.compile('^[\w_]+::[\w_]+::')
 template_pattern = re.compile('<[^<>]+>')
