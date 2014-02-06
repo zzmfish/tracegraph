@@ -6,7 +6,14 @@
 #define CPU_ARCH_X86      0
 #define CPU_ARCH_X86_64   1
 #define CPU_ARCH_ARM      2
+
+#ifdef __i386__
+#define CPU_ARCH          CPU_ARCH_X86
+#elif defined(__amd64__)
+#define CPU_ARCH          CPU_ARCH_X86_64
+#else
 #define CPU_ARCH          CPU_ARCH_ARM
+#endif
 
 unsigned long addr_start = 0, addr_end = 0;
 int max_frame_depth = 0, max_frame_size = 0;
