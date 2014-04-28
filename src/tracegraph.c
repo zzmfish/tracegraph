@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <backtrace.h>
+#include <tracegraph.h>
 
 #define CPU_ARCH_X86      0
 #define CPU_ARCH_X86_64   1
@@ -28,7 +28,7 @@ struct call_table_item {
 #include <android/log.h>
 #define BACKTRACE_LOG(...) __android_log_print(ANDROID_LOG_DEBUG, "backtrace", __VA_ARGS__);
 #else
-#define BACKTRACE_LOG
+#define BACKTRACE_LOG(...) printf(__VA_ARGS__)
 #endif
 
 struct call_table_item **call_table = NULL;
@@ -83,8 +83,8 @@ void backtrace()
     prev_bp = *((void**)bp - 3);
     prev_ip = *((void**)bp - 1);
     #endif
-    if (prev_ip >= addr_start && prev_ip < addr_end
-        && ip >= addr_start && ip < addr_end) {
+    if ((unsigned long)prev_ip >= addr_start && (unsigned long)prev_ip < addr_end
+        && (unsigned long)ip >= addr_start && (unsigned long)ip < addr_end) {
       call_table_set((unsigned long)prev_ip - addr_start, (unsigned long)ip - addr_start, i == 1);
     }
     if (abs(bp - prev_bp) > max_frame_size) //函数栈帧太大就认为出错

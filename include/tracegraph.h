@@ -5,9 +5,9 @@
 extern "C" {
 #endif
 
-void backtrace();
-void backtrace_init(const char *name, int max_frame_depth, int max_frame_size);
-void backtrace_dump(const char *filepath);
+__attribute__((visibility("default"))) void backtrace();
+__attribute__((visibility("default"))) void backtrace_init(const char *name, int max_frame_depth, int max_frame_size);
+__attribute__((visibility("default"))) extern void backtrace_dump(const char *filepath);
 
 #ifdef __cplusplus
 }
